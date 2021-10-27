@@ -1,6 +1,7 @@
 import './css/styles.css';
 import { fetchQuery, galleryApi } from './js/fetchQuery';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+//import SimpleLightbox from 'simplelightbox';
 
 const refs = {
   form: document.querySelector('#search-form'),
@@ -10,16 +11,16 @@ const refs = {
   galleryContainer: document.querySelector('.gallery'),
 };
 
-const murkupArray = [];
-
 refs.form.addEventListener('submit', onSearch);
 refs.btnLoadMore.addEventListener('click', onLoadMore);
-/*refs.input.addEventListener('input', () => {  refs.btnSearch.enabled = 'true';});*/
+//const lightbox = new SimpleLightbox('.photo-card a');
+
 ////////////////////////////
 
 function onSearch(e) {
   e.preventDefault();
 
+  refs.btnLoadMore.hidden = true;
   galleryApi.query = e.currentTarget.elements.searchQuery.value.trim();
   galleryApi.resetPage();
   clearGalleryContainer();
@@ -29,14 +30,20 @@ function onSearch(e) {
   fetchQuery()
     .then(data => {
       if (data.total === 0) {
-        refs.btnLoadMore.hidden = true;
         Notify.failure(`Sorry, there are no images matching your search query. Please try again.`);
         return;
       }
+
       Notify.info(`Hooray! We found ${data.total} images.`);
       renderGallery(data.hits);
-      /*refs.btnSearch.disabled = 'false';*/
-      refs.btnLoadMore.hidden = false;
+
+      if (galleryApi.page * galleryApi.per_page >= data.total) {
+        refs.btnLoadMore.hidden = true;
+        setTimeout(
+          () => Notify.failure(`"We're sorry, but you've reached the end of search results."`),
+          1000,
+        );
+      } else refs.btnLoadMore.hidden = false;
     })
     .catch(error => {
       Notify.failure(`Sorry, there are no images matching your search query. Please try again.`);
@@ -55,25 +62,25 @@ function onLoadMore() {
 
 function renderGallery(data) {
   const markup = data
-    .map(({ previewURL, tags, likes, views, comments, downloads }) => {
+    .map(({ previewURL, tags, likes, views, comments, downloads, largeImageURL }) => {
       return `<div class="photo-card">
-  <img src="${previewURL}" alt="${tags}" loading="lazy" />
-  <div class="info">
+      <a class='gallery__link' href="${largeImageURL}"><img class='gallery__image' src="${previewURL}" alt="${tags}" title="nnnn"/></a>
+    <div class="info">
     <p class="info-item">
       <b>Likes</b>
-      ${likes}
+      <span>${likes}</span>
     </p>
     <p class="info-item">
       <b>Views</b>
-      ${views}
+      <span>${views}</span>
     </p>
     <p class="info-item">
       <b>Comments</b>
-      ${comments}
+      <span>${comments}</span>
     </p>
     <p class="info-item">
       <b>Downloads</b>
-      ${downloads}
+      <span>${downloads}</span>
     </p>
   </div>
 </div>`;
