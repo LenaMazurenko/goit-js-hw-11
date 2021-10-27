@@ -1,7 +1,9 @@
 import './css/styles.css';
 import { fetchQuery, galleryApi } from './js/fetchQuery';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-//import SimpleLightbox from 'simplelightbox';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+//import 'simplelightbox/dist/simple-lightbox.js';
 
 const refs = {
   form: document.querySelector('#search-form'),
@@ -13,7 +15,7 @@ const refs = {
 
 refs.form.addEventListener('submit', onSearch);
 refs.btnLoadMore.addEventListener('click', onLoadMore);
-//const lightbox = new SimpleLightbox('.photo-card a');
+const lightbox = new SimpleLightbox('.gallery a');
 
 ////////////////////////////
 
@@ -62,9 +64,10 @@ function onLoadMore() {
 
 function renderGallery(data) {
   const markup = data
-    .map(({ previewURL, tags, likes, views, comments, downloads, largeImageURL }) => {
-      return `<div class="photo-card">
-      <a class='gallery__link' href="${largeImageURL}"><img class='gallery__image' src="${previewURL}" alt="${tags}" title="nnnn"/></a>
+    .map(({ webformatURL, tags, likes, views, comments, downloads, largeImageURL }) => {
+      return `<a class='gallery__item' href="${largeImageURL}">
+      <div class="photo-card">
+      <img class='gallery__image' src="${webformatURL}" alt="${tags}" title=""/>
     <div class="info">
     <p class="info-item">
       <b>Likes</b>
@@ -83,10 +86,11 @@ function renderGallery(data) {
       <span>${downloads}</span>
     </p>
   </div>
-</div>`;
+</div></a>`;
     })
     .join('');
   refs.galleryContainer.insertAdjacentHTML('beforeend', markup);
+  lightbox.refresh();
 }
 
 function clearGalleryContainer() {
