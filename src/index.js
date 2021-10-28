@@ -33,7 +33,9 @@ function onSearch(e) {
       }
       Notify.info(`Hooray! We found ${data.totalHits} images.`);
       renderGallery(data.hits);
+      scrollToEndOfGallery();
       lightbox.refresh();
+      refs.btnLoadMore.classList.remove('visualy-hidden');
       checkOnLastPage(data.totalHits);
     })
     .catch(error => {
@@ -46,6 +48,7 @@ function onLoadMore() {
   fetchQuery()
     .then(data => {
       renderGallery(data.hits);
+      scrollToEndOfGallery();
       lightbox.refresh();
     })
     .catch(error => {
@@ -86,7 +89,8 @@ function renderGallery(data) {
 //////////////////////////////////
 
 function updatePagesComponent() {
-  refs.btnLoadMore.hidden = true;
+  refs.btnLoadMore.classList.add('visualy-hidden');
+  //refs.btnLoadMore.clas;
   fetchApi.resetPage();
   refs.galleryContainer.innerHTML = '';
 }
@@ -94,10 +98,23 @@ function updatePagesComponent() {
 
 function checkOnLastPage(total) {
   if (fetchApi.page * fetchApi.per_page >= total) {
-    refs.btnLoadMore.hidden = true;
+    //refs.btnLoadMore.classList.remove('load-more-btn');
+    refs.btnLoadMore.classList.add('visualy-hidden');
     setTimeout(
       () => Notify.failure(`"We're sorry, but you've reached the end of search results."`),
       1000,
     );
-  } else refs.btnLoadMore.hidden = false;
+  }
+  //refs.btnLoadMore.classList.add('load-more-btn');
+}
+
+function scrollToEndOfGallery() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 10 + 100,
+    behavior: 'smooth',
+  });
 }
