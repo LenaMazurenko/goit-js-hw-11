@@ -90,7 +90,6 @@ function renderGallery(data) {
 
 function updatePagesComponent() {
   refs.btnLoadMore.classList.add('visualy-hidden');
-  //refs.btnLoadMore.clas;
   fetchApi.resetPage();
   refs.galleryContainer.innerHTML = '';
 }
@@ -98,14 +97,12 @@ function updatePagesComponent() {
 
 function checkOnLastPage(total) {
   if (fetchApi.page * fetchApi.per_page >= total) {
-    //refs.btnLoadMore.classList.remove('load-more-btn');
     refs.btnLoadMore.classList.add('visualy-hidden');
     setTimeout(
       () => Notify.failure(`"We're sorry, but you've reached the end of search results."`),
       1000,
     );
   }
-  //refs.btnLoadMore.classList.add('load-more-btn');
 }
 
 function scrollToEndOfGallery() {
