@@ -1,9 +1,9 @@
 import './css/styles.css';
-import { fetchQuery, galleryApi } from './js/fetchQuery';
+import { fetchQuery, fetchApi } from './js/fetchQuery';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-//import 'simplelightbox/dist/simple-lightbox.js';
+////////////////////////////////////
 
 const refs = {
   form: document.querySelector('#search-form'),
@@ -16,18 +16,14 @@ const refs = {
 refs.form.addEventListener('submit', onSearch);
 refs.btnLoadMore.addEventListener('click', onLoadMore);
 const lightbox = new SimpleLightbox('.gallery a');
-
 ////////////////////////////
 
 function onSearch(e) {
   e.preventDefault();
+  updatePagesComponent();
 
-  refs.btnLoadMore.hidden = true;
-  galleryApi.query = e.currentTarget.elements.searchQuery.value.trim();
-  galleryApi.resetPage();
-  clearGalleryContainer();
-
-  if (!galleryApi.query) return;
+  fetchApi.query = e.currentTarget.elements.searchQuery.value.trim();
+  if (!fetchApi.query) return;
 
   fetchQuery()
     .then(data => {
@@ -35,17 +31,10 @@ function onSearch(e) {
         Notify.failure(`Sorry, there are no images matching your search query. Please try again.`);
         return;
       }
-
-      Notify.info(`Hooray! We found ${data.total} images.`);
+      Notify.info(`Hooray! We found ${data.totalHits} images.`);
       renderGallery(data.hits);
-
-      if (galleryApi.page * galleryApi.per_page >= data.total) {
-        refs.btnLoadMore.hidden = true;
-        setTimeout(
-          () => Notify.failure(`"We're sorry, but you've reached the end of search results."`),
-          1000,
-        );
-      } else refs.btnLoadMore.hidden = false;
+      lightbox.refresh();
+      checkOnLastPage(data.totalHits);
     })
     .catch(error => {
       Notify.failure(`Sorry, there are no images matching your search query. Please try again.`);
@@ -55,7 +44,10 @@ function onSearch(e) {
 
 function onLoadMore() {
   fetchQuery()
-    .then(data => renderGallery(data.hits))
+    .then(data => {
+      renderGallery(data.hits);
+      lightbox.refresh();
+    })
     .catch(error => {
       Notify.failure(`Sorry, there are no images matching your search query. Please try again.`);
     });
@@ -90,9 +82,22 @@ function renderGallery(data) {
     })
     .join('');
   refs.galleryContainer.insertAdjacentHTML('beforeend', markup);
-  lightbox.refresh();
 }
+//////////////////////////////////
 
-function clearGalleryContainer() {
+function updatePagesComponent() {
+  refs.btnLoadMore.hidden = true;
+  fetchApi.resetPage();
   refs.galleryContainer.innerHTML = '';
+}
+//////////////////////////////
+
+function checkOnLastPage(total) {
+  if (fetchApi.page * fetchApi.per_page >= total) {
+    refs.btnLoadMore.hidden = true;
+    setTimeout(
+      () => Notify.failure(`"We're sorry, but you've reached the end of search results."`),
+      1000,
+    );
+  } else refs.btnLoadMore.hidden = false;
 }
